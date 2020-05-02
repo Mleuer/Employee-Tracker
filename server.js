@@ -63,7 +63,7 @@ function viewAll(table) {
 
 function addEmployee() {
     let roles = [];
-    let managers = [];
+    let managers = ['No manager'];
 
     connection.query(`SELECT * FROM role`, (err, data) => {
         if (err) throw err;
@@ -72,32 +72,40 @@ function addEmployee() {
 
         connection.query(`SELECT * FROM employee`, (err, result) => {
             result.forEach(element => managers.push(element.first_name));
+            inquirer.prompt([
+                {
+                    type: "input",
+                    name: 'employeeFirstName',
+                    message: `What is the employee's first name?`,
+                },
+                {
+                    type: "input",
+                    name: 'employeeLastName',
+                    message: `What is the employee's last name?`,
+                },
+                {
+                    type: "rawlist",
+                    name: 'role',
+                    message: `What is the employee's role?`,
+                    choices: roles
+                },
+                {
+                    type: "input",
+                    name: 'manager',
+                    message: `Who is the employee's manager?`,
+                    choices: managers
+                }
+            ]).then(answers => {
+                let roleID = data.forEach(element => element.title == answers.role);
+                let managerID;
+                result.forEach(element => {
+                    if(element.first_name == answers.manager) {
+                        managerID = element.id;
+                    }
+                })
+                connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`, [answers.employeeFirstName, answers.employeeLastName, roleID, managerID])
+            })
         })
-
-        inquirer.prompt([
-            {
-                type: "input",
-                name: 'employeeFirstName',
-                message: `What is the employee's first name?`,
-            },
-            {
-                type: "input",
-                name: 'employeeLastName',
-                message: `What is the employee's last name?`,
-            },
-            {
-                type: "rawlist",
-                name: 'role',
-                message: `What is the employee's role?`,
-                choices: roles
-            },
-            {
-                type: "input",
-                name: 'manager',
-                message: `Who is the employee's manager?`,
-            }
-        ])
-
 
     })
 }
